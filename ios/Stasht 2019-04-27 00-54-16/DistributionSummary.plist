@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Stasht.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>armv7</string>
+				<string>arm64</string>
+			</array>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>5400527D4633CEA6BB4CF4E3451242DE2A06DDBA</string>
+				<key>dateExpires</key>
+				<string>4/25/20</string>
+				<key>type</key>
+				<string>iOS Development</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>U96DCE98DX.org.react.native.stasht</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>U96DCE98DX</string>
+				<key>get-task-allow</key>
+				<true/>
+				<key>keychain-access-groups</key>
+				<array>
+					<string>U96DCE98DX.org.react.native.stasht</string>
+				</array>
+			</dict>
+			<key>name</key>
+			<string>Stasht.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>ba192ab5-36eb-4985-b379-0335b8430d0e</string>
+				<key>name</key>
+				<string>iOS Team Provisioning Profile: org.react.native.stasht</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>U96DCE98DX</string>
+				<key>name</key>
+				<string>Christian Beckermann</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>
