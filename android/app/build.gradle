@@ -153,6 +153,10 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-cookie')
+    implementation project(':react-native-webview')
+    implementation 'com.facebook.android:facebook-android-sdk:4.34.0'
+    implementation project(':react-native-fbsdk')
     implementation project(':react-native-contacts')
     implementation project(':react-native-fs')
     implementation project(':react-native-image-picker')

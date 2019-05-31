@@ -12,6 +12,9 @@ import SwitchToggle from 'react-native-switch-toggle';
 import { Actions } from 'react-native-router-flux';
 import LinearGradient from 'react-native-linear-gradient';
 
+import InstagramLogin from 'react-native-instagram-login'
+import Cookie from 'react-native-cookie'
+
 export default class ConnectScreen extends React.Component {
 
     constructor(){
@@ -21,6 +24,8 @@ export default class ConnectScreen extends React.Component {
           toggleFacebook: false,
       }
     }
+
+
     render() {
       return (
         <View style={styles.ConnectScreenContainer}>
@@ -66,6 +71,14 @@ export default class ConnectScreen extends React.Component {
                   onPress={ () => this.onSwitchInstagram()}
                 />
               </View>
+              <InstagramLogin
+                ref= {ref => this.instagramLogin= ref}
+                clientId='123123122123'
+                redirectUrl='https://google.com'
+                scopes={['public_content', 'follower_list']}
+                onLoginSuccess={(token) => console.log('instagram', token)}
+                onLoginFailure={(data) => console.log('instagram', data)}
+              />
               
               <View style={styles.SwitchButton}>
               <Image
@@ -108,7 +121,7 @@ export default class ConnectScreen extends React.Component {
                     style={styles.gradientButton}
                 >
                     <TouchableOpacity style={styles.gradientButton} activeOpacity={0.6}
-                     onPress={() => Actions.Main()}
+                     onPress={() => this.onNext()}
                       >
                         <Text style={styles.buttonText}>
                             NEXT   >
@@ -160,6 +173,18 @@ export default class ConnectScreen extends React.Component {
       this.setState({toggleFacebook: !this.state.toggleFacebook})
     }
     
+    onInstagramLogin(){
+      this.instagramLogin.show();
+    }
+
+    onNext() {
+      console.log('sdf',this.state.toggleInstagram)
+      // Actions.Main();
+      if(this.state.toggleInstagram)
+        this.onInstagramLogin();
+      else
+        Actions.Main();
+    }
   }
 
 

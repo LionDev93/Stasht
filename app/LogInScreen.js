@@ -20,6 +20,8 @@ import {
 import { Actions } from 'react-native-router-flux';
 import { Toast } from 'native-base';
 
+import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
+
 export default class LogInScreen extends React.Component {
 
     constructor(){
@@ -51,6 +53,29 @@ export default class LogInScreen extends React.Component {
       else {
           this.setState({password:text, password_validated:true})
       }
+    }
+
+    onFacebookLogin(){
+      LoginManager.logInWithReadPermissions(['public_profile']).then(
+        function(result) {
+          if (result.isCancelled) {
+            alert('Login was cancelled');
+          } else {
+            alert('Login was successful with permissions: '
+              + result.grantedPermissions.toString());
+
+              AccessToken.getCurrentAccessToken().then(
+                (data) => {
+                  console.log('fb_token', data.accessToken.toString());
+                }
+              )
+            
+          }
+        },
+        function(error) {
+          alert('Login failed with error: ' + error);
+        }
+      );
     }
 
     onLoginPress(){
@@ -93,7 +118,7 @@ export default class LogInScreen extends React.Component {
                                 , alignItems:'center'}}>
                                 <TouchableOpacity activeOpacity={0.9}
                                     style={styles.fbLoginButton}
-                                    onPress={() => this.onLoginPress()}>
+                                    onPress={() => this.onFacebookLogin()}>
                                     <View style={{justifyContent:'center', flexDirection:'row'}}>
                                         <Image source={require('./images/facebook1.png')}
                                             style={{right:3, alignSelf:'center'}}
@@ -101,6 +126,8 @@ export default class LogInScreen extends React.Component {
                                         <Text style={styles.fbloginText}>Sign-in with Facebook</Text>
                                     </View>
                                 </TouchableOpacity>
+                               
+
                             </Row>
                             <Row size={1}>
                               <Body>
