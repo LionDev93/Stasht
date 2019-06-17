@@ -15,12 +15,20 @@ import { Actions } from 'react-native-router-flux';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} 
   from 'react-native-responsive-screen';
 
+
+import Spinner from 'react-native-loading-spinner-overlay';
+import { Mutation } from 'react-apollo';
+import { FORGOT_MUTATION } from './graphql/gql';
+import {_storeData, _retrieveData} from './service/localStorage';
+
 export default class ForgotPwdScreen extends React.Component {
     constructor(){
         super();
         this.state = {
             email : '',
             email_validated : false,
+
+            forgotPsw_processing: false,
         }
     }
 
@@ -35,9 +43,11 @@ export default class ForgotPwdScreen extends React.Component {
         }
       }
 
-    onRecover() {
+    onRecover(forgotPassword) {
         if(this.state.email_validated){
-            Actions.reset('Login');
+            this.setState({forgotPsw_processing: true});
+            forgotPassword({variables: {email: this.state.email}});
+            // Actions.reset('ForgotPsw');
         }
         else{
             Toast.show({
@@ -53,9 +63,36 @@ export default class ForgotPwdScreen extends React.Component {
         
     }
 
+    onForgotPswResult(data) {
+        console.log('forgotPsw_data', data.forgotPassword);
+        this.setState({forgotPsw_processing: false});
+        // _storeData('user_token', data.forgotPsw);
+        // _storeData('token', data.forgotPsw.accessToken);
+        
+        alert(data.forgotPassword.message);
+        Actions.Login();
+      }
+  
+      onForgotPswError(data) {
+        console.log('forgotPsw_error', data.forgotPassword);
+        this.setState({forgotPsw_processing: false});
+        alert(data.forgotPassword);
+      }
+
     render() {
       return (
+        <Mutation mutation={FORGOT_MUTATION}
+          onCompleted={(data) => this.onForgotPswResult(data)}
+          onError={(data => this.onForgotPswError(data))}
+        >
+        {forgotPassword => (
         <Container>
+            <Spinner
+                visible={this.state.forgotPsw_processing}
+                textContent={'Connecting to Server...'}
+                textStyle={{color: '#fff'}}
+            />
+
             <Header style={{ backgroundColor:'white'}}>
                 <Grid>
                     <Col size={1} style={{ justifyContent:'center'}}>
@@ -116,7 +153,7 @@ export default class ForgotPwdScreen extends React.Component {
                         <Button 
                             style={{ borderWidth:0 , borderRadius:30, margin:20,width:240,
                             backgroundColor:'#00b7af', alignSelf:'center', justifyContent:'center'}}
-                            onPress={() => this.onRecover()}
+                            onPress={() => this.onRecover(forgotPassword)}
                         >
                             <Text>Recover Password</Text>
                         </Button>
@@ -127,6 +164,8 @@ export default class ForgotPwdScreen extends React.Component {
             </Grid>
             </KeyboardAvoidingView>
         </Container>
+        )}
+        </Mutation>
       );
     }
   }

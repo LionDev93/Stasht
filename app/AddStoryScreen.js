@@ -18,7 +18,9 @@ import SearchableDropDown from 'react-native-searchable-dropdown';
 import ContactsWrapper from 'react-native-contacts-wrapper';
 import Contacts from 'react-native-contacts';
 import ImagePicker from 'react-native-image-picker';
-
+import Balloon from "react-native-balloon";
+import {widthPercentageToDP as wp, heightPercentageToDP as hp} 
+  from 'react-native-responsive-screen';
 var  stashtags  = [
 	{
 		id: 1,
@@ -60,6 +62,7 @@ export default class AddStoryScreen extends React.Component {
             stashtag : '',
             invitedFriends : [],
             imageSource : '',
+            prompt_on : false,
         }
     }
     async componentDidMount() {
@@ -173,6 +176,20 @@ export default class AddStoryScreen extends React.Component {
     render() {
       return (
         <Container>
+            {/* <Balloon
+                    containerStyle={styles.balloon}
+                    borderColor="#fff"
+                    backgroundColor="#fff"
+                    borderWidth={2}
+                    borderRadius={20}
+                    triangleSize={0}
+                    onPress={() => console.log("press")}
+                >
+                    <Text>To add a story you will need a stashtag (ex.#mystory)</Text>
+                    <Text>• Any current posts with this stashtag will automatically sync to this story.</Text>
+                    <Text>• Re-visit old posts and put in this stashtag to sync posts.</Text>
+                    <Text>• Invite friends and share the stashtag to pull in their posts as well.</Text>
+                </Balloon> */}
             <ImageBackground 
                 blurRadius={ Platform.OS == 'ios' ? 8 : 4 } 
                 source={this.state.imageSource ? {uri: this.state.imageSource} : require('./images/timeline_bg.png')} 
@@ -255,7 +272,7 @@ export default class AddStoryScreen extends React.Component {
                         <Image style={{ }} source={require('./images/info-with-circle.png')} />
                     </TouchableOpacity>
                 </Row>
-
+                
                 <Row style={{margin:12, height:'auto'}}>
                     <Row style={{width:'100%'}}>
                         <Button rounded style={{ width:45, height:45, backgroundColor:'#00b7af'}}
@@ -311,5 +328,12 @@ export default class AddStoryScreen extends React.Component {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#F5FCFF',
-      },
+    },
+
+    balloon: {
+        position: 'absolute',
+        alignSelf:'center',
+        zIndex: -100,
+        opacity: 100,
+    }
   });

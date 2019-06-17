@@ -18,6 +18,12 @@ import {
 import { Actions } from 'react-native-router-flux';
 import { Toast } from 'native-base';
 
+import { SIGNUP_MUTATION, StoreFBToken_MUTATION } from './graphql/gql';
+import { Mutation } from 'react-apollo';
+
+import Spinner from 'react-native-loading-spinner-overlay';
+import {_storeData, _retrieveData} from './service/localStorage';
+import { ASKeys } from './interface/AsyncStorageKeys';
 
 export default class SignupScreen extends React.Component {
 
@@ -32,16 +38,20 @@ export default class SignupScreen extends React.Component {
           password_validated : false,
           password_confirm: '',
           password_confirmed: false,
+
+          signup_processing: false,
         }
+
+        
       }
 
       validateFullname(text){
         if(text.length < 1 )
         {
-          this.setState({fullname:text, fullname_validated:false})
+          this.setState({fullname: text, fullname_validated: false})
         }
         else {
-            this.setState({fullname:text, fullname_validated:true})
+            this.setState({fullname: text, fullname_validated: true})
         }
       }
 
@@ -74,9 +84,97 @@ export default class SignupScreen extends React.Component {
           this.setState({password_confirm:text, password_confirmed:true})
       }
     }
+
+    onSignupPress(createUser) {
+      console.log("createUser: ", createUser);
+      if(this.state.email_validated && this.state.password_validated 
+          && this.state.fullname_validated && this.state.password_confirmed)
+      {
+        this.setState({signup_processing: true});
+        createUser({variables: {name: this.state.fullname, email: this.state.email, password: this.state.password}});
+        
+      }
+      else{
+        Toast.show({
+          text: "Some Wrongs in your input!",
+          buttonText: "OK",
+          duration: 3000,
+          position: "top",
+          // type: "warning",
+          style: {
+            backgroundColor: "#8A69C4"
+           }
+        })
+      } 
+    }
+
+    onSignupResult(data) {
+      console.log('signup_data', data.createUser);
+      this.setState({signup_processing: false});
+      _storeData(ASKeys.USER, data.createUser);
+      // _storeData(ASKeys.USER_TOKEN, data.createUser.access_token);
+      _storeData(ASKeys.LAST_EMAIL, this.state.email);
+      _storeData(ASKeys.LAST_PASSWORD, this.state.password);
+      Actions.reset('Login');
+    }
+
+    onSignupError(data) {
+      console.log('singup_error', data);
+      this.setState({signup_processing: false});
+      alert(data);
+    }
+
+    onSignupWithFacebook( storeFBToken ) {
+      // var ss = _retrieveData('user');
+      // console.log('get_userinfo', ss);
+      LoginManager.logInWithReadPermissions(['public_profile']).then(
+        function(result) {
+          if (result.isCancelled) {
+            alert('Login was cancelled');
+          } else {
+            alert('Login was successful with permissions: '
+              + result.grantedPermissions.toString());
+              console.log('fblogin_result', result);
+
+              AccessToken.getCurrentAccessToken().then(
+                (data) => {
+                  _storeData(ASKeys.FB_TOKEN, data.accessToken);
+                  alert('access token: ' + data.accessToken.toString());
+                  // StoreFBToken_MUTATION
+                  storeFBToken({variables: {token: data.accessToken}});
+                }
+              )
+            
+          }
+        },
+        function(error) {
+          alert('Login failed with error: ' + error);
+        }
+      );
+      return;
+    }
+
+    onStoreFBTokenResult(data) {
+      console.log('StoreFBToken_Result', data);
+      this.setState({signup_processing: false});
+      // _storeData(ASKeys.USER, data.createUser);
+      Actions.reset('Login');
+    }
+    
+    onStoreFBTokenError(data) {
+      console.log('StoreFBToken_Error', data);
+      this.setState({signup_processing: false});
+      alert(data);
+    }
+
     render() {
       return (
         <Container>
+        <Spinner
+          visible={this.state.signup_processing}
+          textContent={'Signing up...'}
+          textStyle={styles.spinnerTextStyle}
+        />
           <ImageBackground 
             style={styles.upperregion} 
             source={require('./images/login_bg.png')}>
@@ -90,9 +188,16 @@ export default class SignupScreen extends React.Component {
                     </Row>
 
                     <Row size={1} style={{flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
+                    <Mutation mutation={StoreFBToken_MUTATION}
+                      onCompleted={(data) => this.onStoreFBTokenResult(data)}
+                      onError={(data => this.onStoreFBTokenError(data))}
+                    >
+                      {storeFBToken => (
                         <TouchableOpacity activeOpacity={0.9}
                             style={styles.fbLoginButton}
-                            onPress={() => this.onSignupPress()}>
+                            onPress={() => this.onSignupWithFacebook(storeFBToken)
+                            
+                          }>
                             <View style={{justifyContent:'center', flexDirection:'row'}}>
                                 <Image source={require('./images/facebook1.png')}
                                     style={{right:3, alignSelf:'center'}}
@@ -100,6 +205,8 @@ export default class SignupScreen extends React.Component {
                                 <Text style={styles.fbloginText}>Sign-up with Facebook</Text>
                             </View>
                         </TouchableOpacity>
+                      )}
+                      </Mutation>
                     </Row>
 
                     <Row size={1}>
@@ -179,11 +286,22 @@ export default class SignupScreen extends React.Component {
                     </Row>
 
                     <Row size={2.5} style={{flexDirection:'column', alignItems:'center'}}>
-                      <TouchableOpacity activeOpacity={0.9}
-                          style={styles.loginButton}
-                          onPress={() => this.onSignupPress()}>
-                          <Text style={styles.loginText}>Register ></Text>
-                      </TouchableOpacity>
+                    <Mutation mutation={SIGNUP_MUTATION}
+                      onCompleted={(data) => this.onSignupResult(data)}
+                      onError={(data => this.onSignupError(data))}
+                    >
+                      {createUser => (
+                        <TouchableOpacity activeOpacity={0.9}
+                            style={styles.loginButton}
+                            onPress={() => {
+                              this.onSignupPress(createUser)
+                                  // createUser({variables: {name: this.state.fullname, email: this.state.email, password: this.state.password}})
+                            }
+                              }>
+                            <Text style={styles.loginText}>Register ></Text>
+                        </TouchableOpacity>
+                      )}
+                      </Mutation>
                       <View style={{flexDirection:'row', alignContent:'center'}}>
                           <Text note style={{color: 'white', textAlign:'center', margin:10, fontSize:wp('3.5%')
                               ,textDecorationLine: 'underline'}} 
@@ -197,29 +315,11 @@ export default class SignupScreen extends React.Component {
               </KeyboardAvoidingView>
           </ImageBackground>
         </Container>
-        
+     
       );
     }
 
-    onSignupPress(){
-      if(this.state.email_validated && this.state.password_validated 
-          && this.state.fullname_validated && this.state.password_confirmed)
-      {
-        Actions.Connect();
-      }
-      else{
-        Toast.show({
-          text: "Some Wrongs in your input!",
-          buttonText: "OK",
-          duration: 3000,
-          position: "top",
-          // type: "warning",
-          style: {
-            backgroundColor: "#8A69C4"
-           }
-        })
-      } 
-    }
+    
   }
 
 
@@ -232,6 +332,10 @@ export default class SignupScreen extends React.Component {
         width:'100%',
         height:'100%'
       },
+
+    spinnerTextStyle: {
+      color: '#fff',
+    },
 
       containerView: {
          flex: 1,

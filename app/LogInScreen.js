@@ -22,6 +22,12 @@ import { Toast } from 'native-base';
 
 import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
+import Spinner from 'react-native-loading-spinner-overlay';
+import { Mutation } from 'react-apollo';
+import { LOGIN_MUTATION, LOGINWITHHFB_MUTATION, LOGINWITHIG_MUTATION } from './graphql/gql';
+import { _storeData, _retrieveData } from './service/localStorage';
+import { ASKeys } from './interface/AsyncStorageKeys';
+
 export default class LogInScreen extends React.Component {
 
     constructor(){
@@ -31,8 +37,21 @@ export default class LogInScreen extends React.Component {
         email_validated : false,
         password: '',
         password_validated : false,
+        login_processing: false,
       }
+    }
+    componentDidMount() {
+      _retrieveData(ASKeys.LAST_EMAIL).then(result => {
+        this.setState({email: result});
+        this.validateEmail(this.state.email);
+      });
+      
 
+      _retrieveData(ASKeys.LAST_PASSWORD).then(result => {
+        this.setState({password: result});
+        this.validatePassword(this.state.password);
+      })
+      
     }
 
     validateEmail(text){
@@ -55,33 +74,45 @@ export default class LogInScreen extends React.Component {
       }
     }
 
-    onFacebookLogin(){
-      LoginManager.logInWithReadPermissions(['public_profile']).then(
-        function(result) {
-          if (result.isCancelled) {
-            alert('Login was cancelled');
-          } else {
-            alert('Login was successful with permissions: '
-              + result.grantedPermissions.toString());
-
-              AccessToken.getCurrentAccessToken().then(
-                (data) => {
-                  console.log('fb_token', data.accessToken.toString());
-                }
-              )
-            
+    async onFacebookLogin(signInWithFBUser) {
+      result = await LoginManager.logInWithReadPermissions(['public_profile','email']);
+      if (result.isCancelled) {
+        // alert('Login was cancelled');
+      } else {
+        console.log('Login was successful with permissions: ',result.grantedPermissions.toString());
+        data = await AccessToken.getCurrentAccessToken()
+          {
+            _storeData(ASKeys.FB_TOKEN, data.accessToken);
+            console.log('fb_access_token: ', data.accessToken.toString());
+            this.setState({login_processing: true});
+            signInWithFBUser({variables: {token: data.accessToken.toString()}});
           }
-        },
-        function(error) {
-          alert('Login failed with error: ' + error);
         }
-      );
     }
 
-    onLoginPress(){
+    onLoginFBResult(data) {
+      console.log('onLoginFBResult', data);
+      this.setState({login_processing: false});
+      _storeData(ASKeys.USER_TOKEN, data.signInWithFBUser.access_token);
+      _storeData(ASKeys.USER_RefreshToken, data.signInWithFBUser.refresh_token);
+      Actions.reset('Connect');
+    }
+
+    onLoginFBError(data) {
+      console.log('onLoginFBError', data);
+      this.setState({login_processing: false});
+      alert(data);
+    }
+
+
+    onLoginPress(login){
+      // Actions.Main();
+      // return;
       if(this.state.email_validated && this.state.password_validated)
       {
-        Actions.Connect();
+        this.setState({login_processing: true});
+        _storeData(ASKeys.USER_TOKEN, '');
+        login({variables: {username: this.state.email, password: this.state.password}});
       }
       else{
         Toast.show({
@@ -97,28 +128,52 @@ export default class LogInScreen extends React.Component {
       } 
     }
 
+    onLoginResult(data) {
+      console.log('login_data', data);
+      this.setState({login_processing: false});
+      _storeData(ASKeys.USER_TOKEN, data.login.access_token);
+      _storeData(ASKeys.USER_RefreshToken, data.login.refresh_token);
+      _storeData(ASKeys.LAST_EMAIL, this.state.email);
+      _storeData(ASKeys.LAST_PASSWORD, this.state.password);
+      Actions.reset('Connect');
+    }
+
+    onLoginError(data) {
+      console.log('login_error', data);
+      this.setState({login_processing: false});
+      alert(data);
+    }
+
     render() {
       return (
         <Container>
+          <Spinner
+            visible={this.state.login_processing}
+            textContent={'Login...'}
+            textStyle={{color: '#fff'}}
+          />
              {/* <Image source={require('./images/login_bg_1.png')} resizeMode="cover"/> */}
            <ImageBackground 
             style={styles.upperregion} 
             source={require('./images/login_bg.png')}
             >
                 <KeyboardAvoidingView  style={styles.containerView}  enabled={true}
-                behavior='padding' keyboardVerticalOffset={-150}>
+                  behavior='padding' keyboardVerticalOffset={-150}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                        <Grid>
-                            <Row size={4} style={{}}>
-                                <Body>
-                                  <Text style={styles.logoText}>stasht.</Text>
-                                </Body>
-                            </Row>
-                            <Row size={1} style={{flexDirection:'column', justifyContent:'center'
-                                , alignItems:'center'}}>
+                          <Row size={4} style={{}}>
+                              <Body>
+                                <Text style={styles.logoText}>stasht.</Text>
+                              </Body>
+                          </Row>
+                          <Row size={1} style={{flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
+                            <Mutation mutation={LOGINWITHHFB_MUTATION}
+                                onCompleted={(data) => this.onLoginFBResult(data)}
+                                onError={(data => this.onLoginFBError(data))}>
+                              {signInWithFBUser => (
                                 <TouchableOpacity activeOpacity={0.9}
                                     style={styles.fbLoginButton}
-                                    onPress={() => this.onFacebookLogin()}>
+                                    onPress={() => this.onFacebookLogin(signInWithFBUser)}>
                                     <View style={{justifyContent:'center', flexDirection:'row'}}>
                                         <Image source={require('./images/facebook1.png')}
                                             style={{right:3, alignSelf:'center'}}
@@ -126,81 +181,89 @@ export default class LogInScreen extends React.Component {
                                         <Text style={styles.fbloginText}>Sign-in with Facebook</Text>
                                     </View>
                                 </TouchableOpacity>
-                               
-
-                            </Row>
-                            <Row size={1}>
-                              <Body>
-                                <Text style={{color:'white',fontSize:wp('3.5%'), paddingTop:10}}>OR</Text>
-                              </Body>
-                            </Row>
-                            <Row size={3.5} style={{justifyContent:'center'}}>
-                                <Form style={{width:'90%'}}>
-                                  <Label style={{color:'#fff', fontSize:wp('3%'), marginLeft:20}}>Email</Label>
-                                  <Item>
-                                    <TextInput placeholder='stasht@gmail.com' placeholderTextColor='rgba(255,255,255,0.5)'
-                                      style={{color:'#fff', fontSize:wp('4%'), width:'90%'}}
-                                      onChangeText={(text) => this.validateEmail(text)}
-                                      returnKeyType = "next"
-                                      onSubmitEditing={() => {this.input2.focus();}}
-                                      blurOnSubmit={true}
-                                    />
-                                    {this.state.email!='' && this.state.email_validated==true &&
-                                      <Icon name='checkmark-circle' style={{color:'#0FF22D'}}/>
-                                    }
-                                    {this.state.email!='' && this.state.email_validated==false &&
-                                      <Icon name='close-circle' style={{color:'#eee'}}/>
-                                    }
-                                  </Item>
-                                  <Label style={{color:'#fff', fontSize:wp('3%'), marginLeft:20, marginTop:10}}>Password</Label>
-                                  <Item >
-                                    <TextInput secureTextEntry placeholder='*********' placeholderTextColor='rgba(255,255,255,0.5)'
-                                        style={{color:'#fff', fontSize:wp('4%'),width:'90%'}}
-                                        onChangeText={(text) => this.validatePassword(text)}
-                                        getRef = {this.input2}
-                                        ref={(ref) => { this.input2 = ref; }}
-                                    />
-                                      {this.state.password!='' && this.state.password_validated==true &&
-                                       <Icon name='checkmark-circle' style={{color:'#0FF22D'}}/>
-                                      }
-                                      {this.state.password!='' && this.state.password_validated==false &&
-                                        <Icon name='close-circle' style={{color:'#eee'}}/>
-                                      }
-                                  </Item>
-                                  <TouchableOpacity activeOpacity={0.9}
-                                  >
-                                  <Text note style={{color: 'white', textAlign:'center', marginTop:20, fontSize:wp('3%')
-                                      ,textDecorationLine: 'underline'}} 
-                                      onPress={() => {Actions.ForgotPwd()}}>Forgot Password?</Text>
-                                </TouchableOpacity>
-                                </Form>
-                                
-                                </Row>
-                                <Row size={2.5} style={{flexDirection:'column', alignItems:'center'}}>
+                              )}
+                            </Mutation>
+                          </Row>
+                          <Row size={1}>
+                            <Body>
+                              <Text style={{color:'white',fontSize:wp('3.5%'), paddingTop:10}}>OR</Text>
+                            </Body>
+                          </Row>
+                          <Row size={3.5} style={{justifyContent:'center'}}>
+                            <Form style={{width:'90%'}}>
+                              <Label style={{color:'#fff', fontSize:wp('3%'), marginLeft:20}}>Email</Label>
+                              <Item>
+                                <TextInput placeholder='stasht@gmail.com' placeholderTextColor='rgba(255,255,255,0.5)'
+                                  style={{color:'#fff', fontSize:wp('4%'), width:'90%'}}
+                                  onChangeText={(text) => this.validateEmail(text)}
+                                  value={this.state.email}
+                                  returnKeyType = "next"
+                                  onSubmitEditing={() => {this.input2.focus();}}
+                                  blurOnSubmit={true}
+                                />
+                                {this.state.email!='' && this.state.email_validated==true &&
+                                  <Icon name='checkmark-circle' style={{color:'#0FF22D'}}/>
+                                }
+                                {this.state.email!='' && this.state.email_validated==false &&
+                                  <Icon name='close-circle' style={{color:'#eee'}}/>
+                                }
+                              </Item>
+                              <Label style={{color:'#fff', fontSize:wp('3%'), marginLeft:20, marginTop:10}}>Password</Label>
+                              <Item >
+                                <TextInput secureTextEntry placeholder='*********' placeholderTextColor='rgba(255,255,255,0.5)'
+                                    style={{color:'#fff', fontSize:wp('4%'),width:'90%'}}
+                                    onChangeText={(text) => this.validatePassword(text)}
+                                    value={this.state.password}
+                                    getRef = {this.input2}
+                                    ref={(ref) => { this.input2 = ref; }}
+                                />
+                                  {this.state.password!='' && this.state.password_validated==true &&
+                                    <Icon name='checkmark-circle' style={{color:'#0FF22D'}}/>
+                                  }
+                                  {this.state.password!='' && this.state.password_validated==false &&
+                                    <Icon name='close-circle' style={{color:'#eee'}}/>
+                                  }
+                              </Item>
+                              <TouchableOpacity activeOpacity={0.9}
+                              >
+                              <Text note style={{color: 'white', textAlign:'center', marginTop:20, fontSize:wp('3%')
+                                  ,textDecorationLine: 'underline'}} 
+                                  onPress={() => {Actions.ForgotPwd()}}>Forgot Password?</Text>
+                            </TouchableOpacity>
+                            </Form>
+                          </Row>
+                          <Row size={2.5} style={{flexDirection:'column', alignItems:'center'}}>
+                            <Mutation mutation={LOGIN_MUTATION}
+                              onCompleted={(data) => this.onLoginResult(data)}
+                              onError={(data => this.onLoginError(data))}
+                            >
+                              {login => (
                                 <TouchableOpacity activeOpacity={0.9}
                                     style={styles.loginButton}
-                                    onPress={() => this.onLoginPress()}>
+                                    onPress={() => this.onLoginPress(login)}>
                                     <Text style={styles.loginText}>LOGIN NOW   ></Text>
                                 </TouchableOpacity>
-                                <View style={{flexDirection:'row', alignContent:'center'}}>
-                                  <Text note style={{color: 'white', textAlign:'center', margin:10, fontSize:wp('3.5%')}}>new user?</Text>
-                                  <Text note style={{color: 'white', textAlign:'center', margin:10, fontSize:wp('3.5%')
-                                        ,textDecorationLine: 'underline'}} 
-                                        onPress={() => {Actions.Signup()}}
-                                  >
-                                    Create Account.
-                                  </Text>
-                                </View>
-                            </Row>
+                              )}
+                            </Mutation>
+                            <View style={{flexDirection:'row', alignContent:'center'}}>
+                              <Text note style={{color: 'white', textAlign:'center', margin:10, fontSize:wp('3.5%')}}>new user?</Text>
+                              <Text note style={{color: 'white', textAlign:'center', margin:10, fontSize:wp('3.5%')
+                                    ,textDecorationLine: 'underline'}} 
+                                    onPress={() => {Actions.Signup()}}
+                              >
+                                Create Account.
+                              </Text>
+                            </View>
+                          </Row>
                         </Grid>
                     </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
             </ImageBackground>
           </Container>
+         
       );
     }
   }
-
 
   const styles = StyleSheet.create({
     container: {

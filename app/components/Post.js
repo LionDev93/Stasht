@@ -8,6 +8,8 @@ import { Actions } from 'react-native-router-flux';
 
 import {Container, Content, Icon, Right,  View, Text} from 'native-base';
 
+import Slideshow from 'react-native-image-slider-show';
+
 export default class Post extends React.Component {
     constructor(props){
         super(props);
@@ -50,12 +52,7 @@ export default class Post extends React.Component {
                                 source={require('../images/instagram-icon.png')} //this.props.pdata.post_type
                                 style={{width:30, height:30}}
                             />
-                           :
-                            this.props.pdata.post_type == 'stasht' ?
-                            <Image 
-                                source={require('../images/stasht-icon.png')} //this.props.pdata.post_type
-                                style={{width:30, height:30}}
-                            />
+                          
                             :
                             <TouchableOpacity style={{width:30, alignItems:'center'}}
                                 onPress={() => Actions.EditPost({pdata: this.props.pdata})}>
@@ -66,10 +63,15 @@ export default class Post extends React.Component {
                 </View>
 
                 <View style={ styles.MiddleContainer}>
-                    <Image 
-                        source={require('../images/photo1.png')} //{this.props.pdata.photo}
-                        style={{ width: '100%'}} 
-                        resizeMode="stretch" 
+                    <Slideshow 
+                        dataSource={
+                            [{url : 'https://i.pinimg.com/originals/be/df/66/bedf667d653960c6c77b56e7f0fee992.jpg'},
+                             {url : 'https://i.pinimg.com/originals/3e/8d/bd/3e8dbd408a4d32e9c6cdb4ebcdae7d9c.jpg'},
+                             {url : 'https://i.pinimg.com/originals/64/45/c1/6445c18a73e75b22f56ea849298b0e11.jpg'},
+                            ]} //{this.props.pdata.photo}
+                        // style={{ width: '100%', height:'auto'}} 
+                        height={500}
+
                     />
                 </View>
 
@@ -144,3 +146,10 @@ export default class Post extends React.Component {
           left: -20
       }
   });
+
+//   :
+//   this.props.pdata.post_type == 'stasht' ?
+//   <Image 
+//       source={require('../images/stasht-icon.png')} //this.props.pdata.post_type
+//       style={{width:30, height:30}}
+//   />

@@ -25,7 +25,7 @@ export default class MainScreen extends React.Component {
       super();
       this.state= {
         selected_tab : 2,
-        listViewData: post_array,
+        listViewData: [],
         settingOpen : false,
         searchbar : false,
         stashbtn_active : false,
@@ -42,12 +42,12 @@ export default class MainScreen extends React.Component {
       
     }
     componentDidMount(){
-      if(this.state.listViewData[0].tags == ''){
-        this.setState({stashbtn_active: true});
-      }
-      else{
-        this.setState({stashbtn_active: false});
-      }
+      // if(this.state.listViewData[0].tags == ''){
+      //   this.setState({stashbtn_active: true});
+      // }
+      // else{
+      //   this.setState({stashbtn_active: false});
+      // }
     }
     actionsheet_list(){
       this.elemntArray = ['',];

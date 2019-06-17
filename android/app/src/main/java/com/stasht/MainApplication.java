@@ -3,6 +3,7 @@ package com.stasht;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import im.shimo.react.cookie.CookieManagerPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.facebook.reactnative.androidsdk.FBSDKPackage;
@@ -47,6 +48,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
+            new AsyncStoragePackage(),
             new CookieManagerPackage(),
             new RNCWebViewPackage(),
             // new FBSDKPackage(),

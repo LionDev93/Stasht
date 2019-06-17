@@ -106,6 +106,10 @@ export default class EditStoryScreen extends React.Component {
         this.state.invitedFriends.splice(index,1)
         this.setState({ invitedFriends: this.state.invitedFriends});
     }
+
+    onDone() {
+
+    }
     render() {
       return (
         <Container>

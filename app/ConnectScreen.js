@@ -15,6 +15,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import InstagramLogin from 'react-native-instagram-login'
 import Cookie from 'react-native-cookie'
 
+import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
+
+import { ASKeys } from './interface/AsyncStorageKeys';
+import {_storeData, _retrieveData} from './service/localStorage';
+
 export default class ConnectScreen extends React.Component {
 
     constructor(){
@@ -22,10 +27,25 @@ export default class ConnectScreen extends React.Component {
       this.state = {
           toggleInstagram: true,
           toggleFacebook: false,
+          Instagram_token: '',
+          facebook_token: '',
       }
     }
 
+    componentDidMount() {
+      _retrieveData(ASKeys.INSTAGRAM_TOKEN).then(result => {
+        this.setState({Instagram_token: result});
+      })
+      _retrieveData(ASKeys.FB_TOKEN).then(result => {
+        this.setState({facebook_token: result});
+      })
+    }
 
+    componentWillUnmount(){
+      console.log('cc', 'component will unmount');
+      if(this.state.Instagram_token === null)
+        this.LogoutInstagram();
+    }
     render() {
       return (
         <View style={styles.ConnectScreenContainer}>
@@ -73,11 +93,11 @@ export default class ConnectScreen extends React.Component {
               </View>
               <InstagramLogin
                 ref= {ref => this.instagramLogin= ref}
-                clientId='123123122123'
+                clientId='17af3c246c1d433789d04c4fffc1b756'
                 redirectUrl='https://google.com'
                 scopes={['public_content', 'follower_list']}
-                onLoginSuccess={(token) => console.log('instagram', token)}
-                onLoginFailure={(data) => console.log('instagram', data)}
+                onLoginSuccess={(token) => alert(token)}
+                onLoginFailure={(data) => alert(data)}
               />
               
               <View style={styles.SwitchButton}>
@@ -131,7 +151,7 @@ export default class ConnectScreen extends React.Component {
 
               <Text style={{ color: '#00b7af', textAlign: 'center', margin:10, textDecorationLine:'underline'}}
 
-                    onPress={() => Actions.Main()}
+                    onPress={() => Actions.reset('Main')}
                     >
                     Skip this step
               </Text>
@@ -173,17 +193,56 @@ export default class ConnectScreen extends React.Component {
       this.setState({toggleFacebook: !this.state.toggleFacebook})
     }
     
-    onInstagramLogin(){
+    LoginToInstagram(){
       this.instagramLogin.show();
     }
 
+    LogoutInstagram() {
+      Cookie.clear().then(() => {
+        this.setState({ Instagram_token: null })
+      })
+    }
+
+    LoginToFacebook() {
+      LoginManager.logInWithReadPermissions(['public_profile']).then(
+        function(result) {
+          if (result.isCancelled) {
+            alert('Login was cancelled');
+          } else {
+            alert('Login was successful with permissions: '
+              + result.grantedPermissions.toString());
+
+              AccessToken.getCurrentAccessToken().then(
+                (data) => {
+                  _storeData(ASKeys.FB_TOKEN, data.accessToken);
+                  alert('access token: ' + data.accessToken.toString());
+                }
+              )
+            
+          }
+        },
+        function(error) {
+          alert('Login failed with error: ' + error);
+        }
+      );
+    }
+
+    LogoutFacebook() {
+
+    }
+
     onNext() {
-      console.log('sdf',this.state.toggleInstagram)
       // Actions.Main();
-      if(this.state.toggleInstagram)
-        this.onInstagramLogin();
-      else
-        Actions.Main();
+      if(this.state.toggleInstagram && this.state.Instagram_token == ''){
+        this.LoginToInstagram();
+        return;
+      }
+      else if(this.state.toggleFacebook && this.state.facebook_token == ''){
+        this.LoginToFacebook();
+        return;
+      }
+      
+      Actions.reset('Main');
     }
   }
 

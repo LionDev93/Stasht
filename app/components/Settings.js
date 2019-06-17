@@ -15,6 +15,11 @@ import ContactsWrapper from 'react-native-contacts-wrapper';
 import Contacts from 'react-native-contacts';
 import ImagePicker from 'react-native-image-picker';
 
+import { Query  } from 'react-apollo';
+import { ME_QUERY } from '../graphql/gql';
+import { _storeData } from '../service/localStorage';
+import { ASKeys } from '../interface/AsyncStorageKeys';
+
 export default class Settings extends React.Component {
     constructor(){
         super();
@@ -105,6 +110,15 @@ export default class Settings extends React.Component {
     render() {
       return (
         <Container style={styles.container}>
+        <Query query={ME_QUERY}>
+            {({ loading, error, data }) => {
+                if(loading) return <Text>Loading</Text>
+                if(error) {
+                    console.log("me error: ", error);
+                    return <Text>error</Text>
+                }
+                console.log('me:', data);
+            return(
             <Grid>
                 <Row style={{height:24}}>
                     <Left><Text style={{fontSize:20, color:'#00b7af'}}>Settings</Text></Left>
@@ -115,7 +129,7 @@ export default class Settings extends React.Component {
                             style={{width:40, height:40}}
                         ></Thumbnail>
                     </TouchableOpacity>
-                    <Text  numberOfLines={1} style={styles.avataText}>Candice Featherston</Text>
+                    <Text  numberOfLines={1} style={styles.avataText}>{data.me.name}</Text>
                 </Row>
                 <Row style={styles.syncNetwork}>
                     <Grid>
@@ -224,7 +238,11 @@ export default class Settings extends React.Component {
                     </Left>
                 </Row>
             </Grid>
+            );
+        }}
+        </Query>
         </Container>
+       
       );
     }
 

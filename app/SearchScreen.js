@@ -4,8 +4,6 @@ import {
     StyleSheet, 
     Image,
     TouchableOpacity,
-    ScrollView,
-    ListView,
     FlatList
 } from 'react-native';
 import {widthPercentageToDP as wp, heightPercentageToDP as hp} 

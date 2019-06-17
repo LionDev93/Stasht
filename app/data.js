@@ -5,7 +5,11 @@ export const post_array = [
       title: 'Las Palmas Troicales',
       user_img: 'url',
       post_type: 'facebook',
-      photo: 'photo url',
+      photo: [
+        '../images/photo1.png',
+        '../images/photo2.png',
+        '../images/postlogo.png',
+      ],
       content: 'Perfect lighting n*\n#palmtrees #hiddenbeach #travelmexico #beachwalks #bajacalifornia #tropicale #todossantos #cabo',
       date: 'December 12, 2018',
       tags: 'Mexico 2019',
@@ -71,8 +75,34 @@ export const story_array = [
       {
         name: 'name1',
         avatar: 'url',
+      },
+      {
+        name: 'name2',
+        avatar: 'url',
+      },
+      {
+        name: 'name3',
+        avatar: 'url',
+      },
+      {
+        name: 'name4',
+        avatar: 'url',
+      },
+      {
+        name: 'name5',
+        avatar: 'url',
       }
     ],
+    hashtags: [
+      'hashtag1', 'hashtag2', 'hashtag3'
+    ],
+    cover_img: 'cover_img_url',
+    posts: [
+      1,
+      2,
+      3
+    ],
+    unviewed: 3
   },
 
   {
@@ -82,18 +112,26 @@ export const story_array = [
     description: 'Our travel pics from #cabo to #Ixtapa',
     friends: [
       {
-        userID: 'name1',
+        name: 'zzz1',
+        avatar: 'url',
       },
       {
-        userID: 'name1',
+        name: 'zzz2',
+        avatar: 'url',
       },
       {
-        userID: 'name1',
-      }
+        name: 'zzz3',
+        avatar: 'url',
+      },
     ],
     hashtags: [
       'hashtag1', 'hashtag2', 'hashtag3'
     ],
     cover_img: 'cover_img_url',
+    posts: [
+      4,
+      5,
+    ],
+    unviewed: 0
   },
 ];

@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {
     StyleSheet, 
     Image,
-    ListView,
+    FlatList,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { 
@@ -11,21 +11,22 @@ import {
   Text, Left, Body, Right, Button, View, Badge, Row, Col, Grid } from 'native-base';
 import TagBoard from './TagBoard';
 
-const post_array = [
-  'Simon Mignolet',
-  'Nathaniel Clyne',
-  'Dejan Lovren',
-];
+import { story_array } from '../data';
+
+// const post_array = [
+//   'Simon Mignolet',
+//   'Nathaniel Clyne',
+//   'Dejan Lovren',
+// ];
 
 const ml = "MAKE\nLIVE";
 
 export default class Stories extends React.Component {
   constructor(){
     super();
-    this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
     this.state= {
       selected_tab : 1,
-      listViewData: post_array,
+      listViewData: story_array,
       }
   }
 
@@ -36,6 +37,40 @@ export default class Stories extends React.Component {
     this.setState({ listViewData: newData });
   }
   
+  ListViewItemSeparator = () => {
+    return (
+      <View
+        style={{
+          height: 2,
+          width: '100%',
+          backgroundColor: '#fff',
+          borderTopColor: '#bbbbbb',
+          borderTopWidth: 2,
+        }}
+      />
+    );
+  };
+
+  getnames(aStory){
+    if(aStory.friends.length == 0)
+      return '';
+    if(aStory.friends.length == 1)
+      return aStory.friends[0].name;
+    if(aStory.friends.length > 1){
+      let str = '';
+      for(var i=0; i< 2; i++){ 
+        str += aStory.friends[i].name;
+        str += ' ';
+      }
+      
+      if(aStory.friends.length - 2 > 0 ){
+        str += '+';
+        str += aStory.friends.length - 2;
+        str += ' others'
+      }
+      return str;
+    }
+  }
   render() {
       return (
         <Container>
@@ -46,95 +81,126 @@ export default class Stories extends React.Component {
               
               <Grid style={styles.tab_grid}>
               <Row>
-                <List style={styles.list}>
-                  <ListItem noIndent={true} thumbnail style={{backgroundColor:'white'}}
-                      onPress={() => {Actions.Timeline({storyTitle: 'Mexico 2019'})}} >
-                    <Left style={{width:56}}>
-                      <Image borderRadius={16} source={ require('../images/photo1.png') } 
-                          resizeMode='stretch' style={{width:58, height:56}}
-                      />
-                      <Image borderRadius={16} source={ require('../images/photo2.png') } 
-                          resizeMode='stretch' style={{ width:58, height:56, left :-52, top:5, zIndex:-1}}
+                <FlatList 
+                  style={styles.list}
+                  data = { this.state.listViewData}
+                  ItemSeparatorComponent={this.ListViewItemSeparator}
+                  enableEmptySections={true}
+                  renderItem={({item,index}) => 
+                    <Grid style={{backgroundColor:'#fff', padding:8}}>
+                      <Col style={{width:80, flexDirection:'row', justifyContent:'center'}}>
+                        <Image borderRadius={16} source={ require('../images/photo1.png') } 
+                            resizeMode='stretch' style={styles.thumb1}
                         />
-                      <Badge style={styles.imageNumbers}><Text>3</Text></Badge>
-                    </Left>
-                    <Body>
-                      <Text>
-                        Mexico 2019
-                      </Text>
-                      <Text note numberOfLines={1}>
-                        Our travel pics from #cabo to #Ixtapa
-                      </Text>
+                        <Image borderRadius={16} source={ require('../images/photo2.png') } 
+                            resizeMode='stretch' style={styles.thumb2}
+                        />
+                        {item.unviewed > 0 &&
+                          <Badge style={styles.unreadNumbers}><Text>{item.unviewed}</Text></Badge>
+                        }
+                      </Col>
+                      <Col style={{}}>
+                        <Text>
+                          Mexico 2019
+                        </Text>
+                        <Text note numberOfLines={1}>
+                          Our travel pics from #cabo to #Ixtapa
+                        </Text>
+                        
+                        <View style={{ flexDirection:'row'}}>
+                          <TagBoard tagname='#julie'/>
+                          <TagBoard tagname='#raul'/>
+                        </View>
+                        
+                        <View style={{ flexDirection:'row'}}>
+                        {
+                          item.friends.map(data => {
+                            return(
+                              <Image
+                              source={ require('../images/avata3.png')}
+                              style={{ width:20, height:20}}
+                              />
+                            )
+                          })
+                        }
+                          
+                          {/* <Image
+                            source={ require('../images/avata2.png')}
+                            style={{ width:20, height:20, left:-5, zIndex:-1}}
+                          />
+                          <Image
+                            source={ require('../images/avata1.png')}
+                            style={{ width:20, height:20, left:-9, zIndex:-1}}
+                          />
+                           <Image
+                            source={ require('../images/avata2.png')}
+                            style={{ width:20, height:20, left:-13, zIndex:-1}}
+                          />
+                          <Image
+                            source={ require('../images/avata1.png')}
+                            style={{ width:20, height:20, left:-17, zIndex:-1}}
+                          /> */}
+                          <Text note numberOfLines={1} style={{marginLeft:3}}>{this.getnames(item)}</Text>
+                        </View>
+                      </Col>
+                      <Col style={{width:40, flexDirection:'column', justifyContent:'center'}}>
+                        <Badge style={{ backgroundColor: '#00b7af', flexDirection:'column', justifyContent:'center'}}>
+                           <Text style={{ color: 'white' }}>{item.posts.length}</Text>
+                        </Badge>
+                      </Col>
+                    </Grid>
+                  // <ListItem noIndent itemHeader={false} avatar style={{backgroundColor:'white', margin:0, padding:0}}
+                  //     onPress={() => {Actions.Timeline({storyTitle: 'Mexico 2019'})}} >
+                  //   <Left style={styles.thumb_bg}>
+                  //     <Image borderRadius={16} source={ require('../images/photo1.png') } 
+                  //         resizeMode='stretch' style={styles.thumb1}
+                  //     />
+                  //     <Image borderRadius={16} source={ require('../images/photo2.png') } 
+                  //         resizeMode='stretch' style={styles.thumb2}
+                  //       />
+                  //     <Badge style={styles.unreadNumbers}><Text>{item.unviewed}</Text></Badge>
+                  //   </Left>
+                  //   <Body style={{backgroundColor:'yellow'}}>
+                  //     <Text>
+                  //       Mexico 2019
+                  //     </Text>
+                  //     <Text note numberOfLines={1}>
+                  //       Our travel pics from #cabo to #Ixtapa
+                  //     </Text>
                       
-                      <View style={{ flexDirection:'row'}}>
-                        <TagBoard tagname='#julie'/>
-                        <TagBoard tagname='#raul'/>
-                      </View>
+                  //     <View style={{ flexDirection:'row'}}>
+                  //       <TagBoard tagname='#julie'/>
+                  //       <TagBoard tagname='#raul'/>
+                  //     </View>
                       
-                      <View style={{ flexDirection:'row'}}>
-                        <Image
-                          source={ require('../images/avata3.png')}
-                          style={{ width:20, height:20}}
-                        />
-                        <Image
-                          source={ require('../images/avata2.png')}
-                          style={{ width:20, height:20, left:-5, zIndex:-1}}
-                        />
-                        <Image
-                          source={ require('../images/avata1.png')}
-                          style={{ width:20, height:20, left:-9, zIndex:-1}}
-                        />
-                        <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
-                      </View>
-                    </Body>
-                    <Right>
-                      <Badge style={{ backgroundColor: '#00b7af' }}>
-                        <Text style={{ color: 'white' }}>26</Text>
-                      </Badge>
-                    </Right>
-                  </ListItem>
-
-                  {/* Please repeat above ListItem, Below is just example*/}
-                  <ListItem noIndent={true} thumbnail style={{backgroundColor:'white'}}
-                    onPress={() => {Actions.Timeline({storyTitle: 'RedM-Story'})}}>
-                   <Left style={{width:56}}>
-                      <Image borderRadius={16} source={ require('../images/photo1.png') } 
-                          resizeMode='stretch' style={{width:58, height:56}}
-                      />
-                      <Image borderRadius={16} source={ require('../images/photo2.png') } 
-                          resizeMode='stretch' style={{ width:58, height:56, left :-52, top:5, zIndex:-1}}
-                        />
-                    </Left>
-                  <Body>
-                    <Text>RedM-Story</Text>
-                    <Text note numberOfLines={1}>Our travel pics from #cabo to #Ixtapa</Text>
-                    <View style={{ flexDirection:'row'}}>
-                      <Image
-                        source={ require('../images/avata1.png')}
-                        style={{ width:20, height:20}}
-                      />
-                      <Image
-                        source={ require('../images/avata2.png')}
-                        style={{ width:20, height:20, left:-5, zIndex:-1}}
-                      />
-                      <Image
-                        source={ require('../images/avata3.png')}
-                        style={{ width:20, height:20, left:-9, zIndex:-1}}
-                      />
-                      <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
-                    </View>
-                  </Body>
-                  <Right>
-                    <Badge style={{ backgroundColor: '#00b7af' }}>
-                      <Text style={{ color: 'white' }}>26</Text>
-                    </Badge>
-                  </Right>
-                </ListItem>
-              </List>
-             </Row>
-            {/* Add Story button */}
+                  //     <View style={{ flexDirection:'row'}}>
+                  //       <Image
+                  //         source={ require('../images/avata3.png')}
+                  //         style={{ width:20, height:20}}
+                  //       />
+                  //       <Image
+                  //         source={ require('../images/avata2.png')}
+                  //         style={{ width:20, height:20, left:-5, zIndex:-1}}
+                  //       />
+                  //       <Image
+                  //         source={ require('../images/avata1.png')}
+                  //         style={{ width:20, height:20, left:-9, zIndex:-1}}
+                  //       />
+                  //       <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
+                  //     </View>
+                  //   </Body>
+                  //   <Right style={{backgroundColor:'blue', justifyContent:'center'}}>
+                  //     <Badge style={{ backgroundColor: '#00b7af'}}>
+                  //       <Text style={{ color: 'white' }}>26</Text>
+                  //     </Badge>
+                  //   </Right>
+                  // </ListItem>
+                  }
+                />
+              </Row>
+              {/* Add Story button */}
               <Row style={styles.bottomArea}>
-               <Button 
+                <Button 
                   style={styles.storybutton}
                     onPress={() => Actions.AddStory()}
                 >
@@ -142,7 +208,7 @@ export default class Stories extends React.Component {
                 </Button>
               </Row>
             </Grid>
-            </Tab>
+          </Tab>
 
           <Tab heading="Publish" 
               tabStyle={{backgroundColor:'white'}} textStyle={{ color: '#00b7af'}}
@@ -150,24 +216,37 @@ export default class Stories extends React.Component {
             
             <Grid style={styles.tab_grid}>
               <Row>
-                <List 
-                  style={{width:'100%'}}
-                  leftOpenValue={90}
-                  stopRightSwipe={-1}
-                  stopLeftSwipe={90}
-                  listItemPadding={0}
-                  swipeToOpenPercent={90}
-                  dataSource={this.ds.cloneWithRows(this.state.listViewData)}
-                  renderRow={data =>
-                    <ListItem noIndent={true} thumbnail style={{backgroundColor:'white'}}>
-                      <Left style={{width:56}}>
-                        <Image borderRadius={12} source={ require('../images/thumb1.png') } style={{width:58, height:56}}/>
-                        <Image borderRadius={12} source={ require('../images/thumb2.png') } 
-                               style={{width:58, height:56, left :-52, top:5, zIndex:-1}}/>
-                      </Left>
-                      <Body>
-                        <Text>Mexico 2019 </Text>
-                        <Text note numberOfLines={1}>Our travel pics from #cabo to #Ixtapa</Text>
+              <FlatList 
+                  style={styles.list}
+                  data = { this.state.listViewData}
+                  ItemSeparatorComponent={this.ListViewItemSeparator}
+                  enableEmptySections={true}
+                  renderItem={({item,index}) => 
+                    <Grid style={{backgroundColor:'#fff', padding:8}}>
+                      <Col style={{width:80, flexDirection:'row', justifyContent:'center'}}>
+                        <Image borderRadius={16} source={ require('../images/photo1.png') } 
+                            resizeMode='stretch' style={styles.thumb1}
+                        />
+                        <Image borderRadius={16} source={ require('../images/photo2.png') } 
+                            resizeMode='stretch' style={styles.thumb2}
+                          />
+                          {item.unviewed > 0 &&
+                            <Badge style={styles.unreadNumbers}><Text>{item.unviewed}</Text></Badge>
+                          }
+                      </Col>
+                      <Col style={{}}>
+                        <Text>
+                          Mexico 2019
+                        </Text>
+                        <Text note numberOfLines={1}>
+                          Our travel pics from #cabo to #Ixtapa
+                        </Text>
+                        
+                        <View style={{ flexDirection:'row'}}>
+                          <TagBoard tagname='#julie'/>
+                          <TagBoard tagname='#raul'/>
+                        </View>
+                        
                         <View style={{ flexDirection:'row'}}>
                           <Image
                             source={ require('../images/avata3.png')}
@@ -183,26 +262,15 @@ export default class Stories extends React.Component {
                           />
                           <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
                         </View>
-                      </Body>
-                      <Right>
-                        <Badge style={{ backgroundColor: '#00b7af' }}>
-                          <Text style={{ color: 'white' }}>26</Text>
+                      </Col>
+                      <Col style={{width:40, flexDirection:'column', justifyContent:'center'}}>
+                        <Badge style={{ backgroundColor: '#00b7af'}}>
+                           <Text style={{ color: 'white' }}>{item.posts.length}</Text>
                         </Badge>
-                      </Right>
-                    </ListItem>
+                      </Col>
+                    </Grid>
                   }
-                  renderLeftHiddenRow={(data, secId, rowId, rowMap) =>
-                    <Button style={{flex:1,flexDirection:'column', alignItems:'center', justifyContent:'center', backgroundColor:'#bbbbbb'}} 
-                        onPress={() => {this.deleteRow(secId, rowId, rowMap)}}>
-                        <View>
-                          <Image style={{alignSelf:'center'}} source={require('../images/forward.png')}/>
-                        </View>
-                        <View>
-                          <Text style={styles.textButton}>{ml}</Text>                          
-                        </View>
-                    </Button>}
-                  >
-                </List>
+                  />
               </Row>
                {/* Add Story button */}
               <Row style={styles.bottomArea}>
@@ -236,18 +304,42 @@ export default class Stories extends React.Component {
 
     list: {
       width:'100%',
+      margin: 0,
+      padding: 0,
     },
 
-    image2: {
-      left: -52,
-      top: 5,
-      zIndex: -1
+    thumb_bg: {
+      backgroundColor:'pink',
+      width:56,
+      flexDirection: 'column',
+      justifyContent:'center',
+      alignItems:'center',
+
     },
 
-    imageNumbers: {
-      left: -128,
-      top: 9,
+    thumb1: {
+      width:58, 
+      height:56,
+      alignSelf:'center',
+      position: 'absolute'
+    },
+    
+    thumb2: {
+      width:58,
+      height:56,
+      left : 15,
+      top: 22,
+      zIndex:-1,
+      alignSelf:'center',
+      position: 'absolute'
+    },
+
+    unreadNumbers: {
+      top: 25,
+      left: 0,
       backgroundColor: '#EF5D3A',
+      position: 'absolute',
+      alignSelf:'center'
     },
 
     bottomArea: {
