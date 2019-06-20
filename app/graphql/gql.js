@@ -22,7 +22,7 @@ export const LOGIN_MUTATION = gql`
     }
 `;
 
-export const LOGINWITHHFB_MUTATION = gql`
+export const LOGINWITHFB_MUTATION = gql`
     mutation loginWithFB($token: String!) {
         signInWithFBUser(token: $token) {
             access_token
@@ -51,6 +51,13 @@ export const ME_QUERY = gql`
             name
             email
             created_at
+            # profile {
+            #     birthday
+            #     phone_number
+            #     image_url
+            #     sync_instagram
+            #     sync_facebook
+            # }
         }
     }
 `;

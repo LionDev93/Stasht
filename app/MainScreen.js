@@ -25,7 +25,7 @@ export default class MainScreen extends React.Component {
       super();
       this.state= {
         selected_tab : 2,
-        listViewData: [],
+        listViewData: post_array,
         settingOpen : false,
         searchbar : false,
         stashbtn_active : false,
@@ -35,9 +35,9 @@ export default class MainScreen extends React.Component {
         viewHeight: 0,
       }
 
-      this.onSlasht = this.onSlasht.bind(this);
+      this.onStasht = this.onStasht.bind(this);
 
-      this.elemntArray = [];
+      this.elementArray = [];
       this.StoryNames = [];
       
     }
@@ -50,7 +50,7 @@ export default class MainScreen extends React.Component {
       // }
     }
     actionsheet_list(){
-      this.elemntArray = ['',];
+      this.elementArray = ['',];
       this.StoryNames = [];
       this.state.listViewData.map((item) => {
         
@@ -63,15 +63,15 @@ export default class MainScreen extends React.Component {
             }
           }
           if(flag == false){
-            this.elemntArray.push(<Text note style={{color: 'black'}}>{item.tags}</Text>);
+            this.elementArray.push(<Text note style={{color: 'black'}}>{item.tags}</Text>);
             this.StoryNames.push(item.tags);
           }
           
         }
       });
-      this.elemntArray.push(<Text style={{color: '#00b7af'}}>+Add Story</Text>);
-      this.elemntArray.push(<Text style={{color: 'black'}}></Text>);
-      return this.elemntArray;
+      this.elementArray.push(<Text style={{color: '#00b7af'}}>+Add Story</Text>);
+      this.elementArray.push(<Text style={{color: 'black'}}></Text>);
+      return this.elementArray;
     }
 
     
@@ -96,7 +96,7 @@ export default class MainScreen extends React.Component {
               onPress = {() => {
                 this.setState({ selected_tab : 2});
                 
-                if(this.state.listViewData[0].tags == ''){
+                if(this.state.listViewData.length>0 && this.state.listViewData[0].tags == ''){
                   this.setState({stashbtn_active: true});
                 }
                 else{
@@ -242,7 +242,7 @@ export default class MainScreen extends React.Component {
                             }
                           ]}>
                         <View style={{margin:16}}>
-                          <Post pdata={item} type='post' index={index} onStasht={this.onSlasht}></Post>
+                          <Post pdata={item} type='post' index={index} onStasht={this.onStasht}></Post>
                         </View>
                       </Swipeout>
                     }
@@ -270,7 +270,7 @@ export default class MainScreen extends React.Component {
                   {/* <View style={styles.bottombar}>
                         <Button
                           style={this.state.stashbtn_active ? styles.bottombtnactive : styles.bottombtninactive}
-                            onPress={() => this.onSlasht()}
+                            onPress={() => this.onStasht()}
                         >
                           
                             <Text uppercase={false} 
@@ -285,7 +285,7 @@ export default class MainScreen extends React.Component {
         );
     }
     
-    onSlasht = (post_id) => {
+    onStasht = (post_id) => {
       console.log('sdf',post_id);
         this.setState({cur_post_id: post_id});
         this.ActionSheet.show();
@@ -294,7 +294,7 @@ export default class MainScreen extends React.Component {
     onPopupClicked(index){
       if(index == 0)
         return;
-      if(index == this.elemntArray.length-1 || index == this.elemntArray.length-2){ /* 4 means 'add story', the last of option list */
+      if(index == this.elementArray.length-1 || index == this.elementArray.length-2){ /* 4 means 'add story', the last of option list */
          Actions.push('AddStory');
       }
       else{

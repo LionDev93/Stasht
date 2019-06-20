@@ -4,6 +4,7 @@ import {
     StyleSheet, 
     Image,
     FlatList,
+    TouchableOpacity
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 import { 
@@ -12,6 +13,7 @@ import {
 import TagBoard from './TagBoard';
 
 import { story_array } from '../data';
+import Swipeout from 'react-native-swipeout';
 
 // const post_array = [
 //   'Simon Mignolet',
@@ -30,11 +32,10 @@ export default class Stories extends React.Component {
       }
   }
 
-  deleteRow(secId, rowId, rowMap) {
-    rowMap[`${secId}${rowId}`].props.closeRow();
-    const newData = [...this.state.listViewData];
-    newData.splice(rowId, 1);
-    this.setState({ listViewData: newData });
+  deleteRow(index) {
+    this.state.listViewData.splice(index,1)
+    console.log('list', this.state.listViewData);
+    this.setState({ listViewData: this.state.listViewData});
   }
   
   ListViewItemSeparator = () => {
@@ -86,7 +87,10 @@ export default class Stories extends React.Component {
                   data = { this.state.listViewData}
                   ItemSeparatorComponent={this.ListViewItemSeparator}
                   enableEmptySections={true}
-                  renderItem={({item,index}) => 
+                  renderItem={({item,index}) =>
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => {Actions.Timeline({storyTitle: 'Mexico 2019'})} }>
                     <Grid style={{backgroundColor:'#fff', padding:8}}>
                       <Col style={{width:80, flexDirection:'row', justifyContent:'center'}}>
                         <Image borderRadius={16} source={ require('../images/photo1.png') } 
@@ -114,9 +118,9 @@ export default class Stories extends React.Component {
                         
                         <View style={{ flexDirection:'row'}}>
                         {
-                          item.friends.map(data => {
+                          item.friends.map((value,index) => {
                             return(
-                              <Image
+                              <Image key={index}
                               source={ require('../images/avata3.png')}
                               style={{ width:20, height:20}}
                               />
@@ -149,6 +153,7 @@ export default class Stories extends React.Component {
                         </Badge>
                       </Col>
                     </Grid>
+                    </TouchableOpacity>
                   // <ListItem noIndent itemHeader={false} avatar style={{backgroundColor:'white', margin:0, padding:0}}
                   //     onPress={() => {Actions.Timeline({storyTitle: 'Mexico 2019'})}} >
                   //   <Left style={styles.thumb_bg}>
@@ -216,59 +221,83 @@ export default class Stories extends React.Component {
             
             <Grid style={styles.tab_grid}>
               <Row>
-              <FlatList 
+                <FlatList 
                   style={styles.list}
                   data = { this.state.listViewData}
                   ItemSeparatorComponent={this.ListViewItemSeparator}
                   enableEmptySections={true}
                   renderItem={({item,index}) => 
-                    <Grid style={{backgroundColor:'#fff', padding:8}}>
-                      <Col style={{width:80, flexDirection:'row', justifyContent:'center'}}>
-                        <Image borderRadius={16} source={ require('../images/photo1.png') } 
-                            resizeMode='stretch' style={styles.thumb1}
-                        />
-                        <Image borderRadius={16} source={ require('../images/photo2.png') } 
-                            resizeMode='stretch' style={styles.thumb2}
+                    <Swipeout
+                      backgroundColor='#fff'
+                      autoClose={true}
+                      left= {[
+                        {
+                          // onPress: () => {
+                          //   alert('a');
+                          //   this.deleteRow(index)
+                          // },
+                          component: (
+                            <Button style={{width:'100%', flex:1,flexDirection:'column', alignItems:'center', justifyContent:'center', backgroundColor:'#bbbbbb'}}
+                              onPress={() => this.deleteRow(index)}>
+                              <View>
+                                <Image style={{alignSelf:'center'}} source={require('../images/forward.png')}/>
+                              </View>
+                              <View>
+                                <Text style={styles.textButton}>{ml}</Text>                          
+                              </View>
+                            </Button>
+                          ),
+                          // type: "delete",
+                        }
+                    ]}>
+                      <Grid style={{backgroundColor:'#fff', padding:8}}>
+                        <Col style={{width:80, flexDirection:'row', justifyContent:'center'}}>
+                          <Image borderRadius={16} source={ require('../images/photo1.png') } 
+                              resizeMode='stretch' style={styles.thumb1}
                           />
-                          {item.unviewed > 0 &&
-                            <Badge style={styles.unreadNumbers}><Text>{item.unviewed}</Text></Badge>
-                          }
-                      </Col>
-                      <Col style={{}}>
-                        <Text>
-                          Mexico 2019
-                        </Text>
-                        <Text note numberOfLines={1}>
-                          Our travel pics from #cabo to #Ixtapa
-                        </Text>
-                        
-                        <View style={{ flexDirection:'row'}}>
-                          <TagBoard tagname='#julie'/>
-                          <TagBoard tagname='#raul'/>
-                        </View>
-                        
-                        <View style={{ flexDirection:'row'}}>
-                          <Image
-                            source={ require('../images/avata3.png')}
-                            style={{ width:20, height:20}}
-                          />
-                          <Image
-                            source={ require('../images/avata2.png')}
-                            style={{ width:20, height:20, left:-5, zIndex:-1}}
-                          />
-                          <Image
-                            source={ require('../images/avata1.png')}
-                            style={{ width:20, height:20, left:-9, zIndex:-1}}
-                          />
-                          <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
-                        </View>
-                      </Col>
-                      <Col style={{width:40, flexDirection:'column', justifyContent:'center'}}>
-                        <Badge style={{ backgroundColor: '#00b7af'}}>
-                           <Text style={{ color: 'white' }}>{item.posts.length}</Text>
-                        </Badge>
-                      </Col>
-                    </Grid>
+                          <Image borderRadius={16} source={ require('../images/photo2.png') } 
+                              resizeMode='stretch' style={styles.thumb2}
+                            />
+                            {item.unviewed > 0 &&
+                              <Badge style={styles.unreadNumbers}><Text>{item.unviewed}</Text></Badge>
+                            }
+                        </Col>
+                        <Col style={{}}>
+                          <Text>
+                            Mexico 2019
+                          </Text>
+                          <Text note numberOfLines={1}>
+                            Our travel pics from #cabo to #Ixtapa
+                          </Text>
+                          
+                          <View style={{ flexDirection:'row'}}>
+                            <TagBoard tagname='#julie'/>
+                            <TagBoard tagname='#raul'/>
+                          </View>
+                          
+                          <View style={{ flexDirection:'row'}}>
+                            <Image
+                              source={ require('../images/avata3.png')}
+                              style={{ width:20, height:20}}
+                            />
+                            <Image
+                              source={ require('../images/avata2.png')}
+                              style={{ width:20, height:20, left:-5, zIndex:-1}}
+                            />
+                            <Image
+                              source={ require('../images/avata1.png')}
+                              style={{ width:20, height:20, left:-9, zIndex:-1}}
+                            />
+                            <Text note numberOfLines={1}>Susan Smith, + 2 others</Text>
+                          </View>
+                        </Col>
+                        <Col style={{width:40, flexDirection:'column', justifyContent:'center'}}>
+                          <Badge style={{ backgroundColor: '#00b7af'}}>
+                            <Text style={{ color: 'white' }}>{item.posts.length}</Text>
+                          </Badge>
+                        </Col>
+                      </Grid>
+                    </Swipeout>
                   }
                   />
               </Row>

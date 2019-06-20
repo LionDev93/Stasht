@@ -18,7 +18,7 @@ import {
 import { Actions } from 'react-native-router-flux';
 import { Toast } from 'native-base';
 
-import { SIGNUP_MUTATION, StoreFBToken_MUTATION } from './graphql/gql';
+import { SIGNUP_MUTATION, LOGINWITHFB_MUTATION } from './graphql/gql';
 import { Mutation } from 'react-apollo';
 
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -124,45 +124,32 @@ export default class SignupScreen extends React.Component {
       alert(data);
     }
 
-    onSignupWithFacebook( storeFBToken ) {
-      // var ss = _retrieveData('user');
-      // console.log('get_userinfo', ss);
-      LoginManager.logInWithReadPermissions(['public_profile']).then(
-        function(result) {
-          if (result.isCancelled) {
-            alert('Login was cancelled');
-          } else {
-            alert('Login was successful with permissions: '
-              + result.grantedPermissions.toString());
-              console.log('fblogin_result', result);
-
-              AccessToken.getCurrentAccessToken().then(
-                (data) => {
-                  _storeData(ASKeys.FB_TOKEN, data.accessToken);
-                  alert('access token: ' + data.accessToken.toString());
-                  // StoreFBToken_MUTATION
-                  storeFBToken({variables: {token: data.accessToken}});
-                }
-              )
-            
+    async onSignupWithFacebook( signInWithFBUser ) {
+      result = await LoginManager.logInWithReadPermissions(['public_profile','email']);
+      if (result.isCancelled) {
+        // alert('Login was cancelled');
+      } else {
+        console.log('Login was successful with permissions: ',result.grantedPermissions.toString());
+        data = await AccessToken.getCurrentAccessToken()
+          {
+            _storeData(ASKeys.FB_TOKEN, data.accessToken);
+            console.log('fb_access_token: ', data.accessToken.toString());
+            this.setState({signup_processing: true});
+            signInWithFBUser({variables: {token: data.accessToken.toString()}});
           }
-        },
-        function(error) {
-          alert('Login failed with error: ' + error);
         }
-      );
-      return;
     }
 
-    onStoreFBTokenResult(data) {
-      console.log('StoreFBToken_Result', data);
+    onSignupFBResult(data) {
+      console.log('SignupFBToken_Result', data);
       this.setState({signup_processing: false});
-      // _storeData(ASKeys.USER, data.createUser);
-      Actions.reset('Login');
+      _storeData(ASKeys.USER_TOKEN, data.signInWithFBUser.access_token);
+      _storeData(ASKeys.USER_RefreshToken, data.signInWithFBUser.refresh_token);
+      Actions.reset('Connect');
     }
     
-    onStoreFBTokenError(data) {
-      console.log('StoreFBToken_Error', data);
+    onSignupFBError(data) {
+      console.log('SignupFBToken_Error', data);
       this.setState({signup_processing: false});
       alert(data);
     }
@@ -188,14 +175,14 @@ export default class SignupScreen extends React.Component {
                     </Row>
 
                     <Row size={1} style={{flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                    <Mutation mutation={StoreFBToken_MUTATION}
-                      onCompleted={(data) => this.onStoreFBTokenResult(data)}
-                      onError={(data => this.onStoreFBTokenError(data))}
+                    <Mutation mutation={LOGINWITHFB_MUTATION}
+                      onCompleted={(data) => this.onSignupFBResult(data)}
+                      onError={(data => this.onSignupFBError(data))}
                     >
-                      {storeFBToken => (
+                      {signInWithFBUser => (
                         <TouchableOpacity activeOpacity={0.9}
                             style={styles.fbLoginButton}
-                            onPress={() => this.onSignupWithFacebook(storeFBToken)
+                            onPress={() => this.onSignupWithFacebook(signInWithFBUser)
                             
                           }>
                             <View style={{justifyContent:'center', flexDirection:'row'}}>

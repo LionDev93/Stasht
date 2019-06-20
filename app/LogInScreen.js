@@ -24,7 +24,7 @@ import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import Spinner from 'react-native-loading-spinner-overlay';
 import { Mutation } from 'react-apollo';
-import { LOGIN_MUTATION, LOGINWITHHFB_MUTATION, LOGINWITHIG_MUTATION } from './graphql/gql';
+import { LOGIN_MUTATION, LOGINWITHFB_MUTATION, LOGINWITHIG_MUTATION } from './graphql/gql';
 import { _storeData, _retrieveData } from './service/localStorage';
 import { ASKeys } from './interface/AsyncStorageKeys';
 
@@ -167,7 +167,7 @@ export default class LogInScreen extends React.Component {
                               </Body>
                           </Row>
                           <Row size={1} style={{flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                            <Mutation mutation={LOGINWITHHFB_MUTATION}
+                            <Mutation mutation={LOGINWITHFB_MUTATION}
                                 onCompleted={(data) => this.onLoginFBResult(data)}
                                 onError={(data => this.onLoginFBError(data))}>
                               {signInWithFBUser => (

@@ -93,7 +93,7 @@ export default class ConnectScreen extends React.Component {
               </View>
               <InstagramLogin
                 ref= {ref => this.instagramLogin= ref}
-                clientId='17af3c246c1d433789d04c4fffc1b756'
+                clientId='29d22baf671443439e1a4d37c0926848'
                 redirectUrl='https://google.com'
                 scopes={['public_content', 'follower_list']}
                 onLoginSuccess={(token) => alert(token)}

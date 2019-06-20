@@ -4,7 +4,6 @@ import {
     Image,
     ImageBackground,
     TouchableOpacity,
-    ListView,
     Platform,
     FlatList
 } from 'react-native';
