@@ -6,7 +6,6 @@ import {
     TouchableWithoutFeedback, 
     TouchableOpacity,
     KeyboardAvoidingView,
-    ScrollView,
     Image,
     TextInput
 } from 'react-native';
@@ -24,7 +23,7 @@ import { LoginButton, AccessToken, LoginManager  } from 'react-native-fbsdk';
 
 import Spinner from 'react-native-loading-spinner-overlay';
 import { Mutation } from 'react-apollo';
-import { LOGIN_MUTATION, LOGINWITHFB_MUTATION, LOGINWITHIG_MUTATION } from './graphql/gql';
+import { LOGIN_MUTATION, SIGNUPWITHFB_MUTATION, LOGINWITHIG_MUTATION } from './graphql/gql';
 import { _storeData, _retrieveData } from './service/localStorage';
 import { ASKeys } from './interface/AsyncStorageKeys';
 
@@ -74,7 +73,7 @@ export default class LogInScreen extends React.Component {
       }
     }
 
-    async onFacebookLogin(signInWithFBUser) {
+    async onFacebookLogin(signUpWithFacebook) {
       result = await LoginManager.logInWithReadPermissions(['public_profile','email']);
       if (result.isCancelled) {
         // alert('Login was cancelled');
@@ -85,7 +84,8 @@ export default class LogInScreen extends React.Component {
             _storeData(ASKeys.FB_TOKEN, data.accessToken);
             console.log('fb_access_token: ', data.accessToken.toString());
             this.setState({login_processing: true});
-            signInWithFBUser({variables: {token: data.accessToken.toString()}});
+            await _storeData(ASKeys.USER_TOKEN, '');
+            signUpWithFacebook({variables: {token: data.accessToken.toString()}});
           }
         }
     }
@@ -93,8 +93,8 @@ export default class LogInScreen extends React.Component {
     onLoginFBResult(data) {
       console.log('onLoginFBResult', data);
       this.setState({login_processing: false});
-      _storeData(ASKeys.USER_TOKEN, data.signInWithFBUser.access_token);
-      _storeData(ASKeys.USER_RefreshToken, data.signInWithFBUser.refresh_token);
+      _storeData(ASKeys.USER_TOKEN, data.signUpWithFacebook.access_token);
+      _storeData(ASKeys.USER_RefreshToken, data.signUpWithFacebook.refresh_token);
       Actions.reset('Connect');
     }
 
@@ -104,15 +104,15 @@ export default class LogInScreen extends React.Component {
       alert(data);
     }
 
-
     onLoginPress(login){
       // Actions.Main();
       // return;
       if(this.state.email_validated && this.state.password_validated)
       {
         this.setState({login_processing: true});
-        _storeData(ASKeys.USER_TOKEN, '');
-        login({variables: {username: this.state.email, password: this.state.password}});
+        _storeData(ASKeys.USER_TOKEN, '').then(result =>{
+          login({variables: {username: this.state.email, password: this.state.password}})
+        })
       }
       else{
         Toast.show({
@@ -167,13 +167,13 @@ export default class LogInScreen extends React.Component {
                               </Body>
                           </Row>
                           <Row size={1} style={{flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                            <Mutation mutation={LOGINWITHFB_MUTATION}
+                            <Mutation mutation={SIGNUPWITHFB_MUTATION}
                                 onCompleted={(data) => this.onLoginFBResult(data)}
-                                onError={(data => this.onLoginFBError(data))}>
-                              {signInWithFBUser => (
+                                onError={(data) => this.onLoginFBError(data)}>
+                              {signUpWithFacebook => (
                                 <TouchableOpacity activeOpacity={0.9}
                                     style={styles.fbLoginButton}
-                                    onPress={() => this.onFacebookLogin(signInWithFBUser)}>
+                                    onPress={() => this.onFacebookLogin(signUpWithFacebook)}>
                                     <View style={{justifyContent:'center', flexDirection:'row'}}>
                                         <Image source={require('./images/facebook1.png')}
                                             style={{right:3, alignSelf:'center'}}
