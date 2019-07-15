@@ -21,11 +21,18 @@ import { post_array, queryPost } from "./data";
 export default class SearchScreen extends React.Component {
   constructor(props) {
     super(props);
+    const filtered = this.props.data.posts.filter(function(item, index, arr) {
+      if (item.description !== "" || item.medias[0].url !== "") {
+        return true;
+      }
+      return false;
+    });
     this.state = {
       search: "",
-      arrayholder: this.props.data,
-      dataSource: this.props.data
+      arrayholder: filtered,
+      dataSource: filtered
     };
+    console.log("search", this.props.data);
   }
 
   deleteRow(secId, rowId, rowMap) {
@@ -34,9 +41,10 @@ export default class SearchScreen extends React.Component {
     newData.splice(rowId, 1);
     this.setState({ listViewData: newData });
   }
+
   SearchFilterFunction(text) {
     const searchResult = this.state.arrayholder.filter(function(item) {
-      const itemData = item.name.toUpperCase();
+      const itemData = item.description.toUpperCase();
       const textData = text.toUpperCase();
       return itemData.indexOf(textData) > -1;
     });
@@ -102,7 +110,15 @@ export default class SearchScreen extends React.Component {
             ItemSeparatorComponent={this.ListViewItemSeparator}
             renderItem={({ item }) => (
               <View style={{ margin: 16 }}>
-                <Post pdata={item} type="search" />
+                <Post
+                  pdata={item}
+                  type="search"
+                  exdata={{
+                    name: this.props.data.name,
+                    avatar: this.props.data.avatar,
+                    location: this.props.data.location
+                  }}
+                />
               </View>
             )}
             enableEmptySections={true}

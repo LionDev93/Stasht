@@ -156,6 +156,9 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-youtube')
+    implementation project(':react-native-facebook-login')
+    implementation project(':react-native-video')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-cookie')
     implementation project(':react-native-webview')

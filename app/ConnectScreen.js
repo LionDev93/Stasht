@@ -20,7 +20,7 @@ import {
   LOGINWITHIG_MUTATION,
   DISCONNECTSOCIALMEDIA_MUTATION
 } from "./graphql/gql";
-
+import Video from "react-native-video";
 export default class ConnectScreen extends React.Component {
   constructor() {
     super();
@@ -92,7 +92,7 @@ export default class ConnectScreen extends React.Component {
                         so we can access your photos and posts.
                       </Text>
                     </View>
-
+                  
                     <View style={styles.MiddleContainer}>
                       <View style={styles.SwitchButton}>
                         <Image
@@ -100,6 +100,7 @@ export default class ConnectScreen extends React.Component {
                           style={{ width: 120, height: 40 }}
                           resizeMode="contain"
                         />
+                        
                         <SwitchToggle
                           style={{ marginLeft: 30 }}
                           containerStyle={{
@@ -173,6 +174,7 @@ export default class ConnectScreen extends React.Component {
                     </View>
 
                     <View style={styles.BottomContainer}>
+                    
                       <LinearGradient
                         colors={["#52ede6", "#21CFC8"]}
                         start={{ x: 0.0, y: 1.0 }}
@@ -201,7 +203,7 @@ export default class ConnectScreen extends React.Component {
                           margin: 10,
                           textDecorationLine: "underline"
                         }}
-                        onPress={() => this.onSkip()}
+                        onPress={() => this.onSkip(disconnectSocialMedia)}
                       >
                         Skip this step
                       </Text>
@@ -216,7 +218,7 @@ export default class ConnectScreen extends React.Component {
     );
   }
 
-  async onSkip() {
+  async onSkip(disconnectSocialMedia) {
     await _storeData(ASKeys.SKIP_ON, true);
     if (this.state.toggleInstagram == false) {
       disconnectSocialMedia({
@@ -551,5 +553,14 @@ const styles = StyleSheet.create({
     width: 240,
     borderRadius: 40,
     backgroundColor: "#00b7af"
-  }
+  },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width:300,
+    height:300
+  },
 });

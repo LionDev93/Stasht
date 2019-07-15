@@ -31,7 +31,7 @@ export default class Post extends React.Component {
         <View style={styles.TopContainer}>
           <Image
             source={
-              exdata.avatar ? exdata.avatar : require("../images/woman-5.png")
+              exdata.avatar ? {uri:exdata.avatar} : require("../images/woman-5.png")
             } //this.props.pdata.user_img
             style={{ width: 40, height: 40 }}
             resizeMode="contain"
@@ -69,16 +69,20 @@ export default class Post extends React.Component {
         </View>
 
         <View style={styles.MiddleContainer}>
+        {this.props.pdata.medias[0].url.length > 0 &&
           <Slideshow
+            mediaType={this.props.pdata.media_type}
             dataSource={this.props.pdata.medias}
             // [{url : 'https://i.pinimg.com/originals/be/df/66/bedf667d653960c6c77b56e7f0fee992.jpg'},
             //  {url : 'https://i.pinimg.com/originals/3e/8d/bd/3e8dbd408a4d32e9c6cdb4ebcdae7d9c.jpg'},
             // //  {url : 'https://i.pinimg.com/originals/64/45/c1/6445c18a73e75b22f56ea849298b0e11.jpg'},
             // ]} //{this.props.pdata.photo}
-            // style={{ width: '100%', height:'auto'}}
-            height={500}
+            style={{ width: '100%'}}
+            // height={500}
             scrollEnabled={false}
+            // overlay
           />
+          }
         </View>
 
         <View style={styles.PostContent}>

@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import {
-  Image,
   Text,
   View,
   ScrollView,
@@ -12,6 +11,11 @@ import {
   TouchableOpacity,
   Dimensions
 } from "react-native";
+
+import Video from "react-native-video";
+import Image from "react-native-scalable-image";
+import { WebView } from "react-native-webview";
+import YouTube from "react-native-youtube";
 
 const reactNativePackage = require("react-native/package.json");
 const splitVersion = reactNativePackage.version.split(".");
@@ -72,15 +76,27 @@ const styles = StyleSheet.create({
   }
 });
 
+function youtube_parser(url) {
+  var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+  var match = url.match(regExp);
+  console.log(
+    "youtube_parser",
+    match && match[7].length == 11 ? match[7] : false
+  );
+  return match && match[7].length == 11 ? match[7] : false;
+}
+
 export default class Slideshow extends Component {
   constructor(props) {
     super(props);
-
+    console.log("erer", this.props.dataSource);
     this.state = {
       position: 0,
       height: Dimensions.get("window").width * (4 / 9),
       width: Dimensions.get("window").width,
-      scrolling: false
+      scrolling: false,
+
+      paused: true,
     };
   }
 
@@ -184,7 +200,7 @@ export default class Slideshow extends Component {
     const height = this.props.height || this.state.height;
     const position = this._getPosition();
     return (
-      <View style={[this.props.containerStyle, { height: height }]}>
+      <View style={[this.props.containerStyle, {}]}>
         {/* SECTION IMAGE */}
         <ScrollView
           ref={ref => this._onRef(ref)}
@@ -193,7 +209,7 @@ export default class Slideshow extends Component {
           showsHorizontalScrollIndicator={false}
           scrollEnabled={this.props.scrollEnabled}
           {...this._panResponder.panHandlers}
-          style={[styles.container, { height: height }]}
+          style={[styles.container, {}]}
         >
           {this.props.dataSource.length > 0 &&
             this.props.dataSource.map((image, index) => {
@@ -210,19 +226,61 @@ export default class Slideshow extends Component {
                 </View>
               );
               const imageComponent = (
-                <View key={index}>
-                  <Image
-                    source={imageObject}
-                    style={{ height, width }}
-                    resizeMode="contain"
-                  />
+                <View key={index}  >
+                  {this.props.mediaType === "VIDEO" ? (
+                    !image.url.includes("youtube") ? (
+                      <Video
+                        source={{
+                          uri: image.url
+                        }}
+                        ref={ref => {
+                          this.player = ref;
+                        }}
+                        rate={1.0}
+                        resizeMode="center"
+                        style={{ width: width - 30, height }}
+                        playInBackground={false}
+                        playWhenInactive={false}
+                        controls={true}
+                        paused={this.state.paused}
+                        onPress={() => this.setState({paused: !this.state.paused})}
+                      />
+                    ) : (
+                      <YouTube
+                        videoId={youtube_parser(image.url)} // The YouTube video ID
+                        play={true} // control playback of video with true/false
+                        fullscreen={true} // control whether the video should play in fullscreen or inline
+                        loop={true} // control whether the video should loop when ended
+                        // onReady={e => this.setState({ isReady: true })}
+                        // onChangeState={e => this.setState({ status: e.state })}
+                        // onChangeQuality={e =>
+                        //   this.setState({ quality: e.quality })
+                        // }
+                        // onError={e => this.setState({ error: e.error })}
+                        style={{ alignSelf: "stretch", height: 300 }}
+                      />
+                    )
+                  ) : (
+                    <Image source={imageObject} width={width - 30} />
+                  )}
                   {textComponent}
                 </View>
               );
               const imageComponentWithOverlay = (
                 <View key={index} style={styles.containerImage}>
                   <View style={styles.overlay}>
-                    <Image source={imageObject} style={{ height, width }} />
+                    {this.props.mediaType === "VIDEO" ? (
+                      <Video
+                        source={{
+                          uri: "https://www.youtube.com/watch?v=NNamZZsggM4"
+                        }}
+                        resizeMode="contain"
+                        style={{ width, height }}
+                        disableFocus
+                      />
+                    ) : (
+                      <Image source={imageObject} width={width} />
+                    )}
                   </View>
                   {textComponent}
                 </View>
@@ -416,3 +474,26 @@ const iconArrowLeft = function(iconHeight) {
     borderLeftColor: "transparent"
   };
 };
+{
+  /* <Video
+                      source={{
+                        uri:
+                          image.url
+                      }}
+                      ref={ref => {
+                        this.player = ref;
+                      }}
+                      rate={1.0}
+                      resizeMode="center"
+                      style={{ width:width-30, height }}
+                      playInBackground={false}
+                      playWhenInactive={false}
+                      controls={true}
+                    />
+                    
+                       <WebView
+                      style={{flex:1, width:width-30, height:height}}
+                      javaScriptEnabled={false}
+                      source={{uri: image.url}}
+                    />*/
+}

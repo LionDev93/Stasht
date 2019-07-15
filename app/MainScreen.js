@@ -43,7 +43,9 @@ export default class MainScreen extends React.Component {
       cur_post_id: 0,
       totalHeight: 0,
       viewHeight: 0,
-      skipOn: false
+      skipOn: false,
+
+      queryMeData: null,
     };
 
     this.onStasht = this.onStasht.bind(this);
@@ -182,7 +184,7 @@ export default class MainScreen extends React.Component {
           style={{ justifyContent: "center" }}
           onPress={() => {
             // this.setState({searchbar: !this.state.searchbar})
-            Actions.Search({ data: this.state.listViewData });
+            Actions.Search({ data: this.state.queryMeData });
           }}
         >
           <Image
@@ -235,103 +237,115 @@ export default class MainScreen extends React.Component {
   };
   render() {
     return (
-      <Drawer
-        style={drawerStyles}
-        type="static"
-        open={this.state.settingOpen}
-        onClose={() => {
-          this.state.settingOpen = false;
-        }}
-        // content={<Settings />}
-        openDrawerOffset={0.3}
-        side="right"
-        tweenHandler={Drawer.tweenPresets.parallax}
-        tapToClose
-        acceptPan
-      >
-        <Container style={{ backgroundColor: "white" }}>
-          <NavigationBar
-            componentLeft={this.ComponentLeft}
-            componentCenter={this.ComponentCenter}
-            componentRight={this.ComponentRight}
-            navigationBarStyle={{ backgroundColor: "white" }}
-          />
-
-          {this.state.selected_tab == 1 && <Stories />}
-          {this.state.selected_tab == 2 && (
-            <Container
-              style={{ borderTopWidth: 1, borderTopColor: "#bbb" }}
-              // onLayout={this.onContainerSize}
+      <Query query={ME_QUERY}>
+        {({ loading, error, data }) => {
+          if (loading) return <Text>Loading</Text>;
+          if (error) {
+            console.log("me error: ", error);
+            return <Text>error</Text>;
+          }
+          console.log("queried:", data.me);
+          {
+            /* if (data.me.posts.length == 0)
+          return (
+            <View>
+              <Text>No Posts</Text>
+            </View>
+          ); */
+          }
+          {
+            this.state.listViewData = data.me.posts;
+            this.state.queryMeData = data.me;
+          }
+          {
+            {/* test with static data
+            this.state.listViewData = queryPost.data.me.posts;
+            this.state.queryMeData = queryPost.data.me; */}
+          }
+          return (
+            <Drawer
+              style={drawerStyles}
+              type="static"
+              open={this.state.settingOpen}
+              onClose={() => {
+                this.state.settingOpen = false;
+              }}
+              content={<Settings data={this.state.queryMeData} />}
+              openDrawerOffset={0.3}
+              side="right"
+              tweenHandler={Drawer.tweenPresets.parallax}
+              tapToClose
+              acceptPan
             >
-              <Query query={ME_QUERY}>
-                {({ loading, error, data }) => {
-                  if (loading) return <Text>Loading</Text>;
-                  if (error) {
-                    console.log("me error: ", error);
-                    return <Text>error</Text>;
-                  }
-                  console.log("queried:", data.me);
-                  if (data.me.posts.length == 0)
-                    return (
-                      <View>
-                        <Text>No Posts</Text>
-                      </View>
-                    );
-                  {
-                    /* this.setState({ listViewData: data.me.posts }); */
-                  }
-                  this.state.listViewData = data.me.posts;
-                  {
-                    /* this.setState({ listViewData: queryPost.data.me.posts}) */
-                  }
-                  return (
+              <Container style={{ backgroundColor: "white" }}>
+                <NavigationBar
+                  componentLeft={this.ComponentLeft}
+                  componentCenter={this.ComponentCenter}
+                  componentRight={this.ComponentRight}
+                  navigationBarStyle={{ backgroundColor: "white" }}
+                />
+
+                {this.state.selected_tab == 1 && <Stories />}
+                {this.state.selected_tab == 2 && (
+                  <Container
+                    style={{ borderTopWidth: 1, borderTopColor: "#bbb" }}
+                    // onLayout={this.onContainerSize}
+                  >
                     <FlatList
                       ref={ref => {
                         this._flatList = ref;
                       }}
                       data={this.state.listViewData}
-                      renderItem={({ item, index }) => (
-                        <Swipeout
-                          backgroundColor="#fff"
-                          autoClose={true}
-                          left={[
-                            {
-                              onPress: () => {
-                                this.deleteRow(index);
-                              },
-                              component: (
-                                <View
-                                  style={{
-                                    flex: 1,
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center"
-                                  }}
-                                >
-                                  <Image
-                                    source={require("./images/trashcan.png")}
+                      renderItem={({ item, index }) => {
+                        {
+                          if (
+                            item.description !== "" ||
+                            item.medias[0].url !== ""
+                          )
+                            return (
+                              <Swipeout
+                                backgroundColor="#fff"
+                                autoClose={true}
+                                left={[
+                                  {
+                                    onPress: () => {
+                                      this.deleteRow(index);
+                                    },
+                                    component: (
+                                      <View
+                                        style={{
+                                          flex: 1,
+                                          flexDirection: "column",
+                                          alignItems: "center",
+                                          justifyContent: "center"
+                                        }}
+                                      >
+                                        <Image
+                                          source={require("./images/trashcan.png")}
+                                        />
+                                      </View>
+                                    ),
+                                    type: "delete"
+                                  }
+                                ]}
+                              >
+                                <View style={{ margin: 16 }}>
+                                  <Post
+                                    pdata={item}
+                                    exdata={{
+                                      name: this.state.queryMeData.name,
+                                      avatar: this.state.queryMeData.avatar,
+                                      location: this.state.queryMeData.location
+                                    }}
+                                    type="post"
+                                    index={index}
+                                    onStasht={this.onStasht}
                                   />
                                 </View>
-                              ),
-                              type: "delete"
-                            }
-                          ]}
-                        >
-                          <View style={{ margin: 16 }}>
-                            <Post
-                              pdata={item}
-                              exdata={{
-                                name: data.me.name,
-                                avatar: data.me.avatar,
-                                location: data.me.location
-                              }}
-                              type="post"
-                              index={index}
-                              onStasht={this.onStasht}
-                            />
-                          </View>
-                        </Swipeout>
-                      )}
+                              </Swipeout>
+                            );
+                        }
+                      }}
                       enableEmptySections={true}
                       style={{ marginTop: 10 }}
                       keyExtractor={(item, index) => index.toString()}
@@ -339,45 +353,34 @@ export default class MainScreen extends React.Component {
                       onScroll={this.handleScroll}
                       onContentSizeChange={this.onContentSizeChange}
                     />
-                  );
-                }}
-              </Query>
-              {this.state.listViewData && (
-                <ActionSheetCustom
-                  ref={o => (this.ActionSheet = o)}
-                  title={
-                    <Text style={{ color: "#00b7af", fontSize: 18 }}>
-                      Stasht Post
-                    </Text>
-                  }
-                  options={this.actionsheet_list()}
-                  cancelButtonIndex={0}
-                  destructiveButtonIndex={0}
-                  onPress={index => {
-                    this.onPopupClicked(index);
-                  }}
-                  buttonUnderlayColor="#aaa"
-                  styles={{
-                    body: { borderRadius: 20, backgroundColor: "#fff" },
-                    titleBox: { borderRadius: 20 }
-                  }}
-                />
-              )}
-              {/* <View style={styles.bottombar}>
-                        <Button
-                          style={this.state.stashbtn_active ? styles.bottombtnactive : styles.bottombtninactive}
-                            onPress={() => this.onStasht()}
-                        >
-                          
-                            <Text uppercase={false} 
-                              style={this.state.stashbtn_active ? styles.btntextactive : styles.btntextinactive}
-                            >Stasht</Text>
-                        </Button>
-                    </View> */}
-            </Container>
-          )}
-        </Container>
-      </Drawer>
+                    {this.state.listViewData && (
+                      <ActionSheetCustom
+                        ref={o => (this.ActionSheet = o)}
+                        title={
+                          <Text style={{ color: "#00b7af", fontSize: 18 }}>
+                            Stasht Post
+                          </Text>
+                        }
+                        options={this.actionsheet_list()}
+                        cancelButtonIndex={0}
+                        destructiveButtonIndex={0}
+                        onPress={index => {
+                          this.onPopupClicked(index);
+                        }}
+                        buttonUnderlayColor="#aaa"
+                        styles={{
+                          body: { borderRadius: 20, backgroundColor: "#fff" },
+                          titleBox: { borderRadius: 20 }
+                        }}
+                      />
+                    )}
+                  </Container>
+                )}
+              </Container>
+            </Drawer>
+          );
+        }}
+      </Query>
     );
   }
 

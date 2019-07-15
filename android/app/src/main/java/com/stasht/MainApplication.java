@@ -3,6 +3,9 @@ package com.stasht;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.inprogress.reactnativeyoutube.ReactNativeYouTube;
+import com.magus.fblogin.FacebookLoginPackage;
+import com.brentvatne.react.ReactVideoPackage;
 import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import im.shimo.react.cookie.CookieManagerPackage;
 import com.reactnativecommunity.webview.RNCWebViewPackage;
@@ -48,6 +51,9 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
+            new ReactNativeYouTube(),
+            new FacebookLoginPackage(),
+            new ReactVideoPackage(),
             new AsyncStoragePackage(),
             new CookieManagerPackage(),
             new RNCWebViewPackage(),
