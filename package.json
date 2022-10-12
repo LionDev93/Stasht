@@ -32,7 +32,7 @@
     "react-native-elements": "^1.1.0",
     "react-native-emoji-selector": "^0.1.7",
     "react-native-facebook-login": "^1.6.1",
-    "react-native-fbsdk": "0.8.0",
+    "react-native-fbsdk": "3.0.0",
     "react-native-fs": "^2.13.3",
     "react-native-gesture-handler": "^1.1.0",
     "react-native-image-picker": "^0.28.1",
